@@ -22,14 +22,15 @@ class ViewController: UITableViewController {
         } else {
             urlString = "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
         }
-        
-        if let url = URL(string: urlString) {
-            if let data = try? String(contentsOf: url) {
-                let json = JSON(parseJSON: data)
+        DispatchQueue.global(qos: .userInitiated).async { [unowned self] in
+            if let url = URL(string: urlString) {
+                if let data = try? String(contentsOf: url) {
+                    let json = JSON(parseJSON: data)
 
-                if json["metadata"]["responseInfo"]["status"].intValue == 200 {
-                    parse(json: json)
-                    return
+                    if json["metadata"]["responseInfo"]["status"].intValue == 200 {
+                        self.parse(json: json)
+                        return
+                    }
                 }
             }
         }
@@ -37,9 +38,11 @@ class ViewController: UITableViewController {
     }
     
     func showError() {
-        let ac = UIAlertController(title: "Loading error", message: "There was a problem loading this feed.", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "OK", style: .default))
-        present(ac, animated: true)
+        DispatchQueue.main.async { [unowned self] in
+            let ac = UIAlertController(title: "Loading error", message: "There was a problem loading this feed.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(ac, animated: true)
+        }
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -57,7 +60,9 @@ class ViewController: UITableViewController {
             petitions.append(obj)
         }
         
-        tableView.reloadData()
+        DispatchQueue.main.async { [unowned self] in
+            self.tableView.reloadData()
+        }
     }
 
     override func didReceiveMemoryWarning() {
